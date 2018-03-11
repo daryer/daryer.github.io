@@ -101,16 +101,18 @@ function reloadFromCookie()
     if (li)
     {
         items=JSON.parse(li);
+        items.forEach(function(i){
+            flushItem(i);
+            addEvt(i);
+        });
+        freshData();
     }
     li = getCookie("daryer.curator");
     if (li)
     {
         curator=JSON.parse(li);
     }
-    items.forEach(function(i){
-        flushItem(i);
-        addEvt(i);
-    });
+    
 }
 function saveToCookie()
 {
