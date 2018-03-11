@@ -1,6 +1,8 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
+<meta charset="utf-8">
 <title>
 Personal Time Manager
 </title>
@@ -68,7 +70,9 @@ table tr:nth-child(even){
     <h1>Personal Time Manager</h1>
     <hr/>
     <div>
-        Item: <input id="itemInput" /> <button id="AddItem" type="button">Add Item</button> 
+        Item: <input id="itemInput" /> 
+        <button id="AddItem" type="button">Add Item</button> 
+        <button id="clear" type="button">Clear All Items</button>
     </div>
     <hr/>
     <div class="nflex">
@@ -103,6 +107,10 @@ function reloadFromCookie()
     {
         curator=JSON.parse(li);
     }
+    items.forEach(function(i){
+        flushItem(i);
+        addEvt(i);
+    });
 }
 function saveToCookie()
 {
@@ -110,6 +118,13 @@ function saveToCookie()
     setCookie("daryer.items", jsli);
     setCookie("daryer.curator", JSON.stringify(curator));
 }
+
+function expireCookie()
+{
+    getCookie("daryer.items");
+    getCookie("daryer.curator");
+}
+
 function init()
 {
     $("#AddItem").click(function(){
@@ -124,6 +139,16 @@ function init()
         {
             alert("un valid input null or repeat:"+itemV)
         }
+    });
+    $("#clear").click(function(){
+        expireCookie();
+        curator=null;
+        for (var j=items.length-1;j>=0;j--)
+        {
+            console.log(j + items[j]);
+            removeItem(items[j]);
+        }
+        freshData();
     });
 }
 
@@ -147,7 +172,7 @@ function check(input)
 
 function freshData()
 {
-    var result = "<table><tr><th>ÏîÄ¿</th><th>ÖÐ¶Ï´ÎÊý</th><th>×ÜÊ±¼ä</th></tr>";
+    var result = "<table><tr><th>Item</th><th>Interrupt Times</th><th>Total Time</th></tr>";
     items.forEach(function(i){
        var item = i;
        var is = "<tr><td>"+item.name+"</td><td>"+ item.workTime.interruppt + " </td><td>" + toRTime(item.workTime.totalTime) +"</td></tr>";
@@ -197,8 +222,8 @@ function addEvt(item)
     })
     
     $("#"+item.id+"rm").click(function(){
-        $("#"+item.id+"con").remove();
         removeItem(item); 
+        freshData();
     })
 }
 
@@ -225,6 +250,7 @@ function doWork(item)
 
 function removeItem(item)
 {
+    $("#"+item.id+"con").remove();
     var flat = -1;
     items.forEach(function(t, i){
         if (item.id == t.id)
@@ -248,28 +274,30 @@ function flushItem(item)
     $("#cxt").append(con);
 }
 
-function setCookie(c_name,value,expiredays)
+function setCookie(name,value)
 {
-    var exdate=new Date()
-    exdate.setDate(exdate.getDate()+expiredays)
-    document.cookie=c_name+ "=" +escape(value)+
-    ((expiredays==null) ? "" : ";expires="+exdate.toGMTString())
+    var Days = 30;
+    var exp = new Date();
+    exp.setTime(exp.getTime() + Days*24*60*60*1000);
+    document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString();
 }
 
-function getCookie(c_name)
+function getCookie(name)
 {
-    if (document.cookie.length>0)
-      {
-      c_start=document.cookie.indexOf(c_name + "=")
-      if (c_start!=-1)
-        { 
-        c_start=c_start + c_name.length+1 
-        c_end=document.cookie.indexOf(";",c_start)
-        if (c_end==-1) c_end=document.cookie.length
-        return unescape(document.cookie.substring(c_start,c_end))
-        } 
-      }
-    return null;
+    var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+    if(arr=document.cookie.match(reg))
+        return unescape(arr[2]);
+    else
+        return null;
+}
+
+function delCookie(name)
+{
+    var exp = new Date();
+    exp.setTime(exp.getTime() - 1);
+    var cval=getCookie(name);
+    if(cval!=null)
+    document.cookie= name + "="+cval+";expires="+exp.toGMTString();
 }
 </script>
 </html>
