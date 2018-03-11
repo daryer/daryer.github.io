@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+Personal Time Manager
+</title>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.1.min.js" ></script>
+</head>
+<body>
+    <h1>Personal Time Manager</h1>
+    <hr/>
+    Item: <input id="itemInput" /> <button id="AddItem" type="button">Add Item</button>
+    <hr/>
+    <div id="cxt">
+        <div id="i1"> 
+            <button id="AddItem" type="button">±àÂë</button>
+            <a id="remove" href="#">Remove</a>
+        </div>
+    </div>
+    <hr/>
+    <div id="result">
+    </div>
+</body>
+<script type="text/javascript">
+ 
+var items=[];
+var curator={};
+$(document).ready(function(){
+    console.log("start");
+    init();
+    console.log("end");
+})
+
+function init()
+{
+    $("#AddItem").click(function(){
+        var itemV = $("#itemInput").val();
+        itemV = itemV.replace(/(^\s*)|(\s*$)/g, "");
+        if (check(itemV))
+        {
+            generateItem(itemV);
+            freshData();
+        }
+        else
+        {
+            alert("un valid input null or repeat:"+itemV)
+        }
+    });
+}
+
+function check(input)
+{
+    var tmp = input;
+    if ("" == tmp)
+    {
+        return false;
+    }
+    var flat = true;
+    items.forEach(function(i){
+        if (tmp == i.name)
+        {
+            flat = false;
+            return;
+        }
+    });
+    return flat;
+}
+
+function freshData()
+{
+    console.log(items);
+}
+
+function generateItem(inname)
+{
+    var lastid = 0;
+    if (items.length > 0)
+    {
+        lastid = items[items.length-1].id;
+    }
+    var item = {
+        id : lastid + 1,
+        name : inname
+    }
+    items.push(item);
+}
+
+</script>
+</html>
