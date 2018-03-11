@@ -104,7 +104,7 @@ $(document).ready(function(){
 function reloadFromCookie()
 {
     var li = getCookie("daryer.items");
-    if (li && li.length > 0)
+    if (li && li.length > 10)
     {
         items=JSON.parse(li);
         items.forEach(function(i){
