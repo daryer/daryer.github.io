@@ -25,6 +25,12 @@ body{
 input{
     margin-right:20px;
 }
+.citem
+{
+    margin-top:4px;
+    padding-bottom:4px;
+    border-bottom:#eee solid thin;
+}
 .xbutton
 {
     float:right;
@@ -104,16 +110,30 @@ function reloadFromCookie()
         items.forEach(function(i){
             flushItem(i);
             addEvt(i);
+            if (i.name == "Stop")
+            {
+                curator = i;
+            }
         });
         freshData();
     }
-    li = getCookie("daryer.curator");
-    if (li)
+    else
     {
-        curator=JSON.parse(li);
+        addStartStop();
     }
     
+    var cl = getCookie("daryer.curator");
+    if (cl)
+    {
+        curator=JSON.parse(cl);
+    }
 }
+function addStartStop()
+{
+    curator = generateItem("Stop");
+    freshData();
+}
+
 function saveToCookie()
 {
     var jsli = JSON.stringify(items);
@@ -123,8 +143,8 @@ function saveToCookie()
 
 function expireCookie()
 {
-    getCookie("daryer.items");
-    getCookie("daryer.curator");
+    delCookie("daryer.items");
+    delCookie("daryer.curator");
 }
 
 function init()
@@ -152,6 +172,7 @@ function init()
         }
         freshData();
     });
+    
 }
 
 function check(input)
@@ -175,15 +196,38 @@ function check(input)
 function freshData()
 {
     var result = "<table><tr><th>Item</th><th>Interrupt Times</th><th>Total Time</th></tr>";
-    items.forEach(function(i){
+    var tmp = shellSort(items)
+    tmp.forEach(function(i){
        var item = i;
-       var is = "<tr><td>"+item.name+"</td><td>"+ item.workTime.interruppt + " </td><td>" + toRTime(item.workTime.totalTime) +"</td></tr>";
-       result = result + is;
+       if (item.name != "Stop")
+       {
+           var is = "<tr><td>"+item.name+"</td><td>"+ item.workTime.interruppt + " </td><td>" + toRTime(item.workTime.totalTime) +"</td></tr>";
+           result = result + is;
+       }
     });
     result=result+"</table>";
      
     $("#result").html(result);
     saveToCookie();
+}
+function shellSort(tt) {
+    var arr = tt.slice(0);
+    var len = arr.length,
+        temp,
+        gap = 1;
+    while(gap < len/3) {          
+        gap =gap*3+1;
+    }
+    for (gap; gap> 0; gap = Math.floor(gap/3)) {
+        for (var i = gap; i < len; i++) {
+            temp = arr[i];
+            for (var j = i-gap; j > 0 && arr[j].workTime.totalTime < temp.workTime.totalTime; j-=gap) {
+                arr[j+gap] = arr[j];
+            }
+            arr[j+gap] = temp;
+        }
+    }
+    return arr;
 }
 
 function toRTime(t)
@@ -215,6 +259,7 @@ function generateItem(inname)
     items.push(item);
     flushItem(item);
     addEvt(item);
+    return item;
 }
 function addEvt(item)
 {
@@ -252,6 +297,10 @@ function doWork(item)
 
 function removeItem(item)
 {
+    if (item.name == "Stop")
+    {
+        return;
+    }
     $("#"+item.id+"con").remove();
     var flat = -1;
     items.forEach(function(t, i){
@@ -270,9 +319,16 @@ function removeItem(item)
 
 function flushItem(item)
 {
-    var con = "<div id='"+ item.id + "con'>"+
-               "<button id='"+item.id+"btn' type='button'>"+item.name+"</button>"+
-               "<button id='"+item.id+"rm' class='xbutton'>Remove</button></div>";
+    var con = "<div id='"+ item.id + "con' class='citem'>"+
+               "<button id='"+item.id+"btn' type='button'>"+item.name+"</button>";
+    if ("Stop" == item.name)
+    {
+        con = con+"</div>"
+    }
+     else
+    {
+        con = con+"<button id='"+item.id+"rm' class='xbutton'>Remove</button></div>";
+    }     
     $("#cxt").append(con);
 }
 
