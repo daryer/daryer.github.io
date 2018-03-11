@@ -5,32 +5,111 @@
 Personal Time Manager
 </title>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.1.min.js" ></script>
+<style type="text/css">
+body{
+    background:#c7edcc;
+}
+
+.border
+{
+    border-right:#eee solid thin;
+}
+
+.opAre
+{
+    width:50%;
+}
+
+input{
+    margin-right:20px;
+}
+.xbutton
+{
+    float:right;
+    margin-right:10px;
+}
+.nflex
+{
+    display:flex;
+}
+.dflex
+{
+    display:block;
+    float:left;
+}
+
+table,tr,td,th{
+    padding: 0;
+    margin: 0;
+}
+table{
+    width: 100%;
+    border-color: #ccc;
+}
+table tr{
+    line-height: 30px;
+    border-color: #ccc;
+}
+table th,table td{
+    border-color: #ccc;
+}
+
+table tr:nth-child(odd){
+    background: #ddd;
+}
+
+table tr:nth-child(even){
+    background: #fff;
+}
+
+</style>
 </head>
 <body>
     <h1>Personal Time Manager</h1>
     <hr/>
-    Item: <input id="itemInput" /> <button id="AddItem" type="button">Add Item</button>
+    <div>
+        Item: <input id="itemInput" /> <button id="AddItem" type="button">Add Item</button> 
+    </div>
     <hr/>
-    <div id="cxt">
-        <div id="i1"> 
-            <button id="AddItem" type="button">编码</button>
-            <a id="remove" href="#">Remove</a>
+    <div class="nflex">
+       
+        <div id="cxt" class="border opAre dflex">
+            
+        </div>
+        <div id="result" class="border opAre dflex">
         </div>
     </div>
-    <hr/>
-    <div id="result">
-    </div>
+    
 </body>
 <script type="text/javascript">
  
 var items=[];
-var curator={};
-$(document).ready(function(){
-    console.log("start");
-    init();
-    console.log("end");
-})
+var curator=null;
 
+$(document).ready(function(){
+    reloadFromCookie();
+    init();
+});
+
+function reloadFromCookie()
+{
+    var li = getCookie("daryer.items");
+    if (li)
+    {
+        items=JSON.parse(li);
+    }
+    li = getCookie("daryer.curator");
+    if (li)
+    {
+        curator=JSON.parse(li);
+    }
+}
+function saveToCookie()
+{
+    var jsli = JSON.stringify(items);
+    setCookie("daryer.items", jsli);
+    setCookie("daryer.curator", JSON.stringify(curator));
+}
 function init()
 {
     $("#AddItem").click(function(){
@@ -68,8 +147,26 @@ function check(input)
 
 function freshData()
 {
-    console.log(items);
+    var result = "<table><tr><th>项目</th><th>中断次数</th><th>总时间</th></tr>";
+    items.forEach(function(i){
+       var item = i;
+       var is = "<tr><td>"+item.name+"</td><td>"+ item.workTime.interruppt + " </td><td>" + toRTime(item.workTime.totalTime) +"</td></tr>";
+       result = result + is;
+    });
+    result=result+"</table>";
+     
+    $("#result").html(result);
+    saveToCookie();
 }
+
+function toRTime(t)
+{
+    var hours = Math.floor(t / 3600000);
+    var minutes = Math.floor((t % 3600000) / 60000);
+    var seconds = Math.floor((t % 60000 ) / 1000);
+    return hours+"H"+minutes+"M"+seconds+"S";
+}
+
 
 function generateItem(inname)
 {
@@ -80,10 +177,99 @@ function generateItem(inname)
     }
     var item = {
         id : lastid + 1,
-        name : inname
+        name : inname,
+        workTime:{
+            startTime : -1,
+            endTime:-1,
+            interruppt:0,
+            totalTime : 0
+        }
     }
     items.push(item);
+    flushItem(item);
+    addEvt(item);
+}
+function addEvt(item)
+{
+    $("#"+item.id+"btn").click(function(){
+        doWork(item);
+        freshData();
+    })
+    
+    $("#"+item.id+"rm").click(function(){
+        $("#"+item.id+"con").remove();
+        removeItem(item); 
+    })
 }
 
+function doWork(item)
+{
+    var now = new Date().getTime();
+    if (null == curator)
+    {
+        item.workTime.startTime = now;
+    }
+    else if (item.id == curator.id)
+    {
+        return;
+    }
+    else
+    {
+        curator.workTime.endTime = now;
+        curator.workTime.interruppt = curator.workTime.interruppt + 1;
+        curator.workTime.totalTime = curator.workTime.totalTime + now - curator.workTime.startTime;
+        item.workTime.startTime = now;
+    }
+    curator = item;
+}
+
+function removeItem(item)
+{
+    var flat = -1;
+    items.forEach(function(t, i){
+        if (item.id == t.id)
+        {
+            flat = i;
+            return;
+        }
+    });
+    if (flat > -1)
+    {
+        items.splice(flat, 1);
+    }
+    
+}
+
+function flushItem(item)
+{
+    var con = "<div id='"+ item.id + "con'>"+
+               "<button id='"+item.id+"btn' type='button'>"+item.name+"</button>"+
+               "<button id='"+item.id+"rm' class='xbutton'>Remove</button></div>";
+    $("#cxt").append(con);
+}
+
+function setCookie(c_name,value,expiredays)
+{
+    var exdate=new Date()
+    exdate.setDate(exdate.getDate()+expiredays)
+    document.cookie=c_name+ "=" +escape(value)+
+    ((expiredays==null) ? "" : ";expires="+exdate.toGMTString())
+}
+
+function getCookie(c_name)
+{
+    if (document.cookie.length>0)
+      {
+      c_start=document.cookie.indexOf(c_name + "=")
+      if (c_start!=-1)
+        { 
+        c_start=c_start + c_name.length+1 
+        c_end=document.cookie.indexOf(";",c_start)
+        if (c_end==-1) c_end=document.cookie.length
+        return unescape(document.cookie.substring(c_start,c_end))
+        } 
+      }
+    return null;
+}
 </script>
 </html>
