@@ -78,7 +78,9 @@ table tr:nth-child(even){
     <div>
         Item: <input id="itemInput" /> 
         <button id="AddItem" type="button">Add Item</button> 
+        <button id="clearT" type="button">Clear Time</button>
         <button id="clear" type="button">Clear All Items</button>
+        
     </div>
     <hr/>
     <div class="nflex">
@@ -167,12 +169,23 @@ function init()
         curator=null;
         for (var j=items.length-1;j>=0;j--)
         {
-            console.log(j + items[j]);
             removeItem(items[j]);
         }
         freshData();
     });
-    
+    $("#clearT").click(function(){
+        curator=null;
+        for (var j=items.length-1;j>=0;j--)
+        {
+            items[j].workTime={
+                startTime : -1,
+                endTime:-1,
+                interruppt:0,
+                totalTime : 0
+            }
+        }
+        freshData();
+    });
 }
 
 function check(input)
