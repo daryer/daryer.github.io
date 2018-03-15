@@ -16,7 +16,10 @@ body{
 {
     border-right:#eee solid thin;
 }
-
+.select
+{
+    background-color:#ecb3b3;
+}
 .opAre
 {
     width:50%;
@@ -289,6 +292,7 @@ function addEvt(item)
 
 function doWork(item)
 {
+    $(".select").addClass("select");
     var now = new Date().getTime();
     if (null == curator)
     {
@@ -305,6 +309,7 @@ function doWork(item)
         curator.workTime.totalTime = curator.workTime.totalTime + now - curator.workTime.startTime;
         item.workTime.startTime = now;
     }
+    $("#"+curator.id+"btn").addClass("select");
     curator = item;
 }
 
