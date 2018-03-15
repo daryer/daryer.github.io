@@ -309,8 +309,9 @@ function doWork(item)
         curator.workTime.totalTime = curator.workTime.totalTime + now - curator.workTime.startTime;
         item.workTime.startTime = now;
     }
-    $("#"+curator.id+"btn").addClass("select");
+    
     curator = item;
+    $("#"+curator.id+"btn").addClass("select");
 }
 
 function removeItem(item)
